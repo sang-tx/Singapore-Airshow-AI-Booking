@@ -8,7 +8,7 @@ const initAI = () => {
   } catch (error) {
     return {
       models: {
-        generateContent: () => ({text: ''})
+        generateContent: () => ({text: 'This feature isn’t available yet. Please check back later.'})
       }
     }
   }
