@@ -1,19 +1,13 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { AttendeeProfile, AttendeeType } from "../types";
-const initAI = () => {
-  try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    return ai
-  } catch (error) {
-    return {
-      models: {
-        generateContent: () => ({text: 'This feature isn’t available yet. Please check back later.'})
-      }
-    }
-  }
-}
 
+// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = {
+  models: {
+    generateContent: async (params: any) => ({text: 'This feature isn’t available yet. Please check back later.'})
+  }
+};
 
 const MOCK_DATA_FOR_AI = `
 Available Attendees for Recommendation:
@@ -68,7 +62,6 @@ When acting as a scheduling assistant:
 
 // Fix: use proper contents structure with parts as per @google/genai requirements
 export async function getNextChatResponse(history: { role: string, text: string }[]) {
-  const ai = initAI()
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: history.map(h => ({
@@ -88,7 +81,6 @@ export async function summarizeProfile(history: { role: string, text: string }[]
   const prompt = `Based on the conversation so far, summarize the attendee profile.
 Return JSON with the fields: name, role, company, company_type, industries, interests, intent, preferred_meeting_duration, declined.`;
 
-  const ai = initAI()
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: `${prompt}\n\nHistory: ${JSON.stringify(history)}` }] }],
@@ -141,7 +133,6 @@ export async function evaluateMatch(myProfile: AttendeeProfile, targetProfile: A
   const prompt = `Evaluate suitability for a 1-on-1 meeting.
 Return JSON with: score (0-1), alignment_points (array), why_match (string).`;
 
-  const ai = initAI()
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: `${prompt}\n\nMe: ${JSON.stringify(myProfile)}\nTarget: ${JSON.stringify(targetProfile)}` }] }],
