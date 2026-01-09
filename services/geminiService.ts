@@ -1,8 +1,19 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { AttendeeProfile, AttendeeType } from "../types";
+const initAI = () => {
+  try {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return ai
+  } catch (error) {
+    return {
+      models: {
+        generateContent: () => ({text: ''})
+      }
+    }
+  }
+}
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MOCK_DATA_FOR_AI = `
 Available Attendees for Recommendation:
@@ -29,7 +40,7 @@ Your goal is to support professional business matchmaking, profiling, and schedu
 
 ### Phase 3: Scheduling Assistance (New Role)
 You assist users with meeting scheduling for professional event appointments.
-- **Guidance**: Help users select meeting durations (15m for intro, 30m for strategy). 
+- **Guidance**: Help users select meeting durations (15m for intro, 30m for strategy).
 - **Time Slots**: Explain that slots are 15 or 30 minutes, based on their preference.
 - **Drafting Notes**: Help users draft short, professional meeting notes/introductions (e.g., "Interested in your MRO capabilities for our regional fleet").
 - **Rules & Constraints**:
@@ -57,6 +68,7 @@ When acting as a scheduling assistant:
 
 // Fix: use proper contents structure with parts as per @google/genai requirements
 export async function getNextChatResponse(history: { role: string, text: string }[]) {
+  const ai = initAI()
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: history.map(h => ({
@@ -76,6 +88,7 @@ export async function summarizeProfile(history: { role: string, text: string }[]
   const prompt = `Based on the conversation so far, summarize the attendee profile.
 Return JSON with the fields: name, role, company, company_type, industries, interests, intent, preferred_meeting_duration, declined.`;
 
+  const ai = initAI()
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: `${prompt}\n\nHistory: ${JSON.stringify(history)}` }] }],
@@ -125,9 +138,10 @@ export interface EvaluateMatchResponse {
 
 // Fix: added responseSchema for better reliability and used proper contents structure
 export async function evaluateMatch(myProfile: AttendeeProfile, targetProfile: AttendeeProfile): Promise<EvaluateMatchResponse> {
-  const prompt = `Evaluate suitability for a 1-on-1 meeting. 
+  const prompt = `Evaluate suitability for a 1-on-1 meeting.
 Return JSON with: score (0-1), alignment_points (array), why_match (string).`;
 
+  const ai = initAI()
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [{ parts: [{ text: `${prompt}\n\nMe: ${JSON.stringify(myProfile)}\nTarget: ${JSON.stringify(targetProfile)}` }] }],
@@ -153,10 +167,10 @@ Return JSON with: score (0-1), alignment_points (array), why_match (string).`;
       why_match: typeof result.why_match === 'string' ? result.why_match : "General industry fit."
     };
   } catch (e) {
-    return { 
-      score: 0.5, 
-      alignment_points: ["Industry fit"], 
-      why_match: "Both attendees are in the aerospace sector." 
+    return {
+      score: 0.5,
+      alignment_points: ["Industry fit"],
+      why_match: "Both attendees are in the aerospace sector."
     };
   }
 }
