@@ -2,12 +2,12 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AttendeeProfile, AttendeeType } from "../types";
 
-// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-const ai = {
-  models: {
-    generateContent: async (params: any) => ({text: 'This feature isn’t available yet. Please check back later.'})
-  }
-};
+const ai = new GoogleGenAI({ apiKey: process.env.VITE_C_H_A_T });
+// const ai = {
+//   models: {
+//     generateContent: async (params: any) => ({text: 'This feature isn’t available yet. Please check back later.'})
+//   }
+// };
 
 const MOCK_DATA_FOR_AI = `
 Available Attendees for Recommendation:
